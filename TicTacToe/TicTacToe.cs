@@ -7,112 +7,152 @@ namespace TicTacToe
 {
     public class TicTacToe
     {
-        private readonly IUserInterface m_UI;
-        private readonly Player[] m_Players;
-        private Player m_CurrentPlayer;
-        private readonly char[] m_Cells;
+        private readonly IUserInterface UI;
+        private readonly Player[] Players;
+        private Player CurrentPlayer;
+        private Board Board;
+        int maxUserInputNumber;
 
-        public  TicTacToe Default()
+        /// <summary>
+        /// Create a new game
+        /// </summary>
+        /// <param name="ui"></param>
+        /// <param name="board"></param>
+        /// <param name="player"></param>
+        public TicTacToe(IUserInterface ui,  Board board, Player[] player)
         {
-            var ui = new ConsoleInterface();
-
-            return new TicTacToe(
-                ui,
-                new[]
-                {
-                    ui.EmptyCellSymbol, ui.EmptyCellSymbol, ui.EmptyCellSymbol,
-                    ui.EmptyCellSymbol, ui.EmptyCellSymbol, ui.EmptyCellSymbol,
-                    ui.EmptyCellSymbol, ui.EmptyCellSymbol, ui.EmptyCellSymbol
-                },
-                new[]
-                {
-                    new Player("Player 1", 'X'),
-                    new Player("Player 2", 'O')
-                });
+            UI = ui;
+            Players = player;
+            Board = board;
+            maxUserInputNumber= Board.Rows* Board.Coloumns;
         }
-
-        public TicTacToe(IUserInterface ui, char[] cells, Player[] player)
-        {
-            m_UI = ui;
-            m_Cells = cells;
-            m_Players = player;
-        }
-
+        /// <summary>
+        /// Start the game
+        /// </summary>
         public void Start()
         {
-            m_CurrentPlayer = m_Players[0];
+            CurrentPlayer = Players[0];
 
+            // Endless loop for running the game
             while (true)
             {
-                m_UI.ShowTurn(m_Players, m_CurrentPlayer.Name, m_Cells);
-
+                UI.ShowTurn(Players, CurrentPlayer.Name, Board.Cells);
+                Board.ShowBoard();
+                // Turn was invalid. For example user choosed a cell which was already picked
+                // Game continues
                 if (!Turn())
                 {
-                    m_UI.ShowInvalidChoice();
+                    UI.ShowInvalidChoice();
                     continue;
                 }
-
-                if (PlayerWins(m_CurrentPlayer.Token))
+                // Game ends
+                if (PlayerWins(CurrentPlayer.Token))
                 {
-                    m_UI.ShowWin(m_CurrentPlayer.Name, m_Cells);
+                    Board.ShowBoard();
+                    UI.ShowWin(CurrentPlayer.Name, Board.Cells);
                     break;
                 }
-
+                // Game ends
                 if (IsDraw()) break;
 
                 NextPlayer();
             }
 
-            m_UI.ShowEnd();
+            UI.ShowEnd();
         }
-
+        /// <summary>
+        /// Check if the turn is valid
+        /// </summary>
+        /// <returns></returns>
         private bool Turn()
         {
             int index;
-            bool isIntValue = int.TryParse(m_UI.GetUserInput(), out index);
+            // User entered a number
+            bool isIntValue = int.TryParse(UI.GetUserInput(), out index);
+
+            // Get the number the user entered -1 
             if (isIntValue) index = index - 1;
 
-            if (!isIntValue || index < 0 || index > 8 || m_Cells[index] != m_UI.EmptyCellSymbol)
+            // Turn is valid when the user entered  a number between 1-9 and if cell is free
+            if (!isIntValue || index < 0 || index > maxUserInputNumber || Board.Cells[index] !=Board.EmptyCellSymbol)
             {
                 return false;
             }
 
-            m_Cells[index] = m_CurrentPlayer.Token;
+            // Set the value of the cell to the user token
+            Board.Cells[index] = CurrentPlayer.Token;
+
+            //return valid turn
             return true;
         }
 
+        /// <summary>
+        /// Swap CurrentPlayer
+        /// </summary>
         private void NextPlayer()
         {
-            if (m_CurrentPlayer == m_Players[0]) m_CurrentPlayer = m_Players[1];
-            else m_CurrentPlayer = m_Players[0];
+            if (CurrentPlayer == Players[0]) CurrentPlayer = Players[1];
+            else CurrentPlayer = Players[0];
         }
-
+        /// <summary>
+        /// Checks if the game ends because a player wins
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         internal bool PlayerWins(char value)
         {
-            for (int i = 0; i < 7; i = i + 3)
+            int[] RowStrike = new int[Board.Coloumns];
+            int[] ColoumnStrike = new int[Board.Rows];
+
+            int[] DiagonalStrike = new int[Board.Rows];
+            int index = 0;
+
+            // Check Every Row
+            for (int currentRow = 0; currentRow < Board.Rows; currentRow++)
             {
-                if (CheckCellValues(value, i, i + 1, i + 2)) return true;
+                for(int currentColoumn = 0; currentColoumn < Board.Coloumns; currentColoumn++)
+                {
+                    RowStrike[currentColoumn] = currentRow * Board.Coloumns + currentColoumn+1;
+                }
+                if (CheckCellValues(value, RowStrike)) return true;
+
             }
 
-            for (int i = 0; i < 3; i++)
+            //Check E
+            for (int currentColoumn = 0; currentColoumn < Board.Coloumns; currentColoumn++)
             {
-                if (CheckCellValues(value, i, i + 3, i + 6)) return true;
+                for (int currentRow = 0; currentRow < Board.Rows; currentRow++)
+                {
+                    ColoumnStrike[currentRow] = currentRow * Board.Coloumns + currentColoumn + 1;
+                }
+
+                if (CheckCellValues(value, ColoumnStrike)) return true;
             }
 
-            if (CheckCellValues(value, 0, 4, 8)) return true;
-            if (CheckCellValues(value, 2, 4, 6)) return true;
-
-            return false;
+            lreturn false;
         }
 
+        /// <summary>
+        /// Checks if the game is over because no free cell is available.
+        /// </summary>
+        /// <returns></returns>
         internal bool IsDraw()
         {
-            return !m_Cells.Any(a => a == m_UI.EmptyCellSymbol);
+            // No cell value euqals the empty cell value. No free cell available
+            return !Board.Cells.Any(a => a == Board.EmptyCellSymbol);
         }
 
-        private bool CheckCellValues(char value, int index1, int index2, int index3)
+        // Check if all values equals the token
+        private bool CheckCellValues(char value, int[] indexes)
         {
-            return m_Cells[index1] == value && m_Cells[index2] == value && m_Cells[index3] == value;
+            foreach (int index in indexes)
+            {
+                if (Board.Cells[index-1] != value)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

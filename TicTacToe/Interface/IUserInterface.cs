@@ -8,7 +8,6 @@ namespace TicTacToe.Interface
     public interface IUserInterface
     {
 
-        char EmptyCellSymbol { get; }
         string GetUserInput();
         void ShowEnd();
         void ShowInvalidChoice();

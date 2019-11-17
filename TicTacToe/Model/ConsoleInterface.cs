@@ -7,9 +7,7 @@ using TicTacToe.Interface;
 namespace TicTacToe.Model
 {
     public class ConsoleInterface : IUserInterface
-    {
-        // The default Symbol for the board cells that where not picked
-        public char EmptyCellSymbol => '0';
+    { 
 
         /// <summary>
         /// Read the User Input in the Console
@@ -19,7 +17,7 @@ namespace TicTacToe.Model
         {
             return Console.ReadLine();
         }
-
+        
         /// <summary>
         /// Shows a message to the User after the game finished
         /// </summary>
@@ -35,9 +33,7 @@ namespace TicTacToe.Model
         {
             Console.WriteLine("The cell is already marked or invalid.");
             Console.WriteLine("Please choose an other cell.\n");
-
             Task.Delay(2000).Wait();
-
         }
 
         /// <summary>
@@ -51,32 +47,18 @@ namespace TicTacToe.Model
             Console.Clear();
             Console.WriteLine($"{players[0].Name}:{players[0].Token} and {players[1].Name}:{players[1].Token}\n");
             Console.WriteLine($"{currentPlayerName} chance\n");
-            ShowBoard(cells);
+            
 
         }
 
+        /// <summary>
+        /// Message the win to the user
+        /// </summary>
+        /// <param name="playerName"></param>
+        /// <param name="cells"></param>
         public void ShowWin(string playerName, char[] cells)
         {
-            ShowBoard(cells);
             Console.WriteLine(playerName+" wins");
-        }
-        private void ShowBoard(char[] cells)
-        {
-            Console.WriteLine("     |     |      ");
-            Console.WriteLine($"  {GetCellValue(0, cells)}  |  {GetCellValue(1, cells)}  |  {GetCellValue(2, cells)}");
-            Console.WriteLine("_____|_____|_____ ");
-            Console.WriteLine("     |     |      ");
-            Console.WriteLine($"  {GetCellValue(3, cells)}  |  {GetCellValue(4, cells)}  |  {GetCellValue(5, cells)}");
-            Console.WriteLine("_____|_____|_____ ");
-            Console.WriteLine("     |     |      ");
-            Console.WriteLine($"  {GetCellValue(6, cells)}  |  {GetCellValue(7, cells)}  |  {GetCellValue(8, cells)}");
-            Console.WriteLine("     |     |      ");
-        }
-
-        private string GetCellValue(int index, char[] cells)
-        {
-            if (cells[index] == EmptyCellSymbol) return (index + 1).ToString();
-            return cells[index].ToString();
         }
     }
 }
